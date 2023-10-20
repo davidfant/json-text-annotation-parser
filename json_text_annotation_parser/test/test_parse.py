@@ -129,6 +129,29 @@ class JSONTextAnnotationParserTest(unittest.TestCase):
     ])
   
 
+  def test_empty_list(self):
+    value, annotations = prepare('''
+{
+  "first": [],
+  "second": 🟢[]🔴
+}
+    '''.strip())
+    parsed = parse(value, annotations)
+    self.assertEqual(parsed, [['second']])
+  
+
+  def test_full_list(self):
+    value, annotations = prepare('''
+{
+  "list": 🟢[
+    0,
+    1,
+    2
+  ]🔴
+}
+    '''.strip())
+    parsed = parse(value, annotations)
+    self.assertEqual(parsed, [['list']])
 
 
 if __name__ == '__main__':

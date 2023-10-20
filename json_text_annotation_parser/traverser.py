@@ -43,6 +43,9 @@ class JSONTraverser:
     return dumped, offset
 
   def traverse_dict(self, data: Dict, path: List[str | int], offset: int):
+    if not data:
+      return '{}'
+
     indent_current = ' ' * self.indent * len(path)
     indent_next = ' ' * self.indent * (len(path) + 1)
 
@@ -67,6 +70,9 @@ class JSONTraverser:
     return f'{dict_prefix}{dict_str}{dict_suffix}'
 
   def traverse_list(self, data: List, path: List[str | int], offset: int):
+    if not data:
+      return '[]'
+
     indent_current = ' ' * self.indent * len(path)
     indent_next = ' ' * self.indent * (len(path) + 1)
 

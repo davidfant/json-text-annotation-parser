@@ -1,7 +1,6 @@
-import json
 from dataclasses import dataclass
-from typing import Any, Callable, List, Literal, Dict, Tuple, Set
-from .traverser import JSONTraverser, path_to_id
+from typing import Any, List, Dict, Tuple
+from .traverser import JSONTraverser
 
 @dataclass
 class TextAnnotation:
@@ -47,7 +46,6 @@ def parse_annotation(
       intersecting_node_ids.append(node_id)
   
   most_specific_node_id: str | int | None = None
-  most_specific_node_intersecting_child_ids: List[str] = []
 
   # Assumes intersecting_node_ids is sorted from parent -> child
   for node_id in intersecting_node_ids:
@@ -73,33 +71,22 @@ def parse_annotation(
       len(node.path) > len(node_by_id[most_specific_node_id].path)
     ):
       most_specific_node_id = node_id
-      most_specific_node_intersecting_child_ids = intersecting_child_ids
 
       has_multiple_intersecting_children = len(intersecting_child_ids) > 1
-      all_children_are_intersecting = len(intersecting_child_ids) == len(node_child_ids)
-      if has_multiple_intersecting_children and not all_children_are_intersecting:
-        break
+      if has_multiple_intersecting_children:
+        node = node_by_id[node_id]
+        all_children_are_intersecting = len(intersecting_child_ids) == len(node_child_ids)
+        if all_children_are_intersecting:
+          return [node.path]
+        else:
+          return [
+            node.path + [node_by_id[id].path[-1]]
+            for id in intersecting_child_ids
+          ]
 
   if not most_specific_node_id:
     return []
   
   most_specific_node = node_by_id[most_specific_node_id]
-  if most_specific_node_intersecting_child_ids:
-    child_path_last_value = [
-      node_by_id[id].path[-1]
-      for id in most_specific_node_intersecting_child_ids
-    ]
-    if len(child_path_last_value) == 1:
-      return [
-        most_specific_node.path + [child_path_last_value[0]]
-      ]
-
-    return [
-      most_specific_node.path + [child_path_last_value]
-      for child_path_last_value in child_path_last_value
-    ]
-  elif not isinstance(most_specific_node.value, (dict, list)):
-    return [most_specific_node.path]
-  else:
-    return []
+  return [most_specific_node.path]
 
